@@ -199,9 +199,11 @@ void tst_QAndroidJniObject::compareOperatorTests()
     QString str("hello!");
     QAndroidJniObject stringObject = QAndroidJniObject::fromString(str);
 
+    jobject obj = stringObject.object();
     jobject jobj = stringObject.object<jobject>();
     jstring jsobj = stringObject.object<jstring>();
 
+    QVERIFY(obj == stringObject);
     QVERIFY(jobj == stringObject);
     QVERIFY(stringObject == jobj);
     QVERIFY(jsobj == stringObject);
@@ -531,6 +533,15 @@ void tst_QAndroidJniObject::getStaticObjectFieldClassName()
         jboolean booleanValue = boolObject.callMethod<jboolean>("booleanValue");
         QVERIFY(booleanValue);
     }
+
+    {
+        QAndroidJniObject boolObject = QAndroidJniObject::getStaticObjectField("java/lang/Boolean",
+                                                                               "FALSE",
+                                                                               "Ljava/lang/Boolean;");
+        QVERIFY(boolObject.isValid());
+        jboolean booleanValue = boolObject.callMethod<jboolean>("booleanValue");
+        QVERIFY(!booleanValue);
+    }
 }
 
 void tst_QAndroidJniObject::getStaticObjectField()
@@ -557,6 +568,16 @@ void tst_QAndroidJniObject::getStaticObjectField()
 
         jboolean booleanValue = boolObject.callMethod<jboolean>("booleanValue");
         QVERIFY(booleanValue);
+    }
+
+    {
+        QAndroidJniObject boolObject = QAndroidJniObject::getStaticObjectField(cls,
+                                                                               "FALSE",
+                                                                               "Ljava/lang/Boolean;");
+        QVERIFY(boolObject.isValid());
+
+        jboolean booleanValue = boolObject.callMethod<jboolean>("booleanValue");
+        QVERIFY(!booleanValue);
     }
 }
 
@@ -679,8 +700,6 @@ void tst_QAndroidJniObject::getStaticCharField()
 
 void tst_QAndroidJniObject::getBooleanField()
 {
-    QVERIFY(m_activityDelegateClass);
-
     QAndroidJniObject obj("org/qtproject/qt5/android/QtActivityDelegate");
 
     QVERIFY(obj.isValid());
@@ -693,7 +712,6 @@ void tst_QAndroidJniObject::getIntField()
 
     QVERIFY(obj.isValid());
     jint res = obj.getField<jint>("m_currentRotation");
-
     QCOMPARE(res, -1);
 }
 
